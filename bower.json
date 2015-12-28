@@ -1,9 +1,9 @@
 {
-  "name": "newVBA",
-  "description": "",
+  "name": "my-angular-boilerplate",
+  "description": "AngularJS boilerplate",
   "main": "index.js",
   "authors": [
-    "Luxis Interactive <kevin.blanco@luxisinteractive.com>"
+    "Rodolfo Canessa"
   ],
   "license": "ISC",
   "moduleType": [],
@@ -20,3 +20,4 @@
     "angular-ui-router": "~0.2.15"
   }
 }
+
