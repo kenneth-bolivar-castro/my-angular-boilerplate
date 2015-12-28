@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html ng-app="app">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Title</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="css/style.css">
+	</head>
+	<body>
+		<!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+		<div ui-view></div>
+
+		<!-- CDNs -->
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+		<!-- build:js -->
+		
+		<!-- Vendor -->
+		<script src="vendor/angular-ui-router/release/angular-ui-router.min.js"></script>
+
+		<!-- App -->
+		<script src="app/app.main.js"></script>
+		<script src="app/app.vendor.js"></script>
+		<script src="app/app.config.js"></script>
+		<script src="app/app.router.js"></script>
+		<script src="app/app.api.js"></script>
+		<script src="app/templates.js"></script>
+
+		<!-- Controllers -->
+		<script src="app/controllers/app.controllers.js"></script>
+
+		<!-- Directives -->
+		<script src="app/directives/app.directives.js"></script>
+
+		<!-- Factories -->
+		<script src="app/factories/app.factories.js"></script>
+
+		<!-- Filters -->
+		<script src="app/filters/app.filters.js"></script>
+
+		<!-- endbuild -->
+	</body>
+</html>

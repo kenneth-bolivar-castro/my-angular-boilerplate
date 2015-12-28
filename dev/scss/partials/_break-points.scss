@@ -1,0 +1,28 @@
+// Usage
+// @include bp-md {
+//	 CODE CODE CODE CODE
+// }
+
+@mixin bp-md {
+	@media only screen and (max-width: 991px) {
+		@content
+	}
+}
+
+@mixin bp-sm {
+	@media only screen and (max-width: 768px) {
+		@content
+	}
+}
+
+@mixin bp-xs {
+	@media only screen and (max-width: 440px) {
+		@content
+	}
+}
+
+@mixin bp-xxs {
+	@media only screen and (max-width: 320px) {
+		@content
+	}
+}
