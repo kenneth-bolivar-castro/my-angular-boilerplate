@@ -8,110 +8,137 @@ var gulp = require('gulp'),
     iife = require("gulp-iife"),
     sftp = require('gulp-sftp'),
     uglify = require('gulp-uglify'),
-    concat = require('gulp-concat');
+    concat = require('gulp-concat'),
+    mainBowerFiles = require('gulp-main-bower-files'),
+    open = require('gulp-open'),
+    runSequence = require('run-sequence'),
+    config = require('./gulpConfig');
 
 // Develop server
 gulp.task('connectDev', function() {
   connect.server({
-    root: 'dev/',
+    root: config.root.dev,
     livereload: true,
-    port: 8000,
-    debug: true
+    port: config.serverPort.dev
   });
+
+  return gulp.src(config.staticIndex.dev).pipe(open({ uri: config.getUri('dev') }));
 });
 
 // Distribution server
 gulp.task('connectDist', function() {
   connect.server({
-    root: 'dist/',
-    port: 3000,
+    root: config.root.dist,
+    port: config.serverPort.dist
   });
+
+  return gulp.src(config.staticIndex.dev).pipe(open({ uri: config.getUri('dist') }));
 });
 
 // SASS dev compile
-gulp.task('sass', function () {
-  return gulp.src('dev/scss/style.scss')
-    .pipe(sourcemaps.init())
-    .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
-    .pipe(autoprefixer())
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('dev/css'))
-    .pipe(connect.reload());
+gulp.task('sass-dev', function () {
+    var configSass = config.sass;
+
+    return gulp.src(configSass.src)
+        .pipe(sourcemaps.init())
+        .pipe(sass({outputStyle: configSass.outputStyle}).on('error', sass.logError))
+        .pipe(autoprefixer())
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest(configSass.dest.dev))
+        .pipe(connect.reload());
 });
 
 // SASS dist compile
 gulp.task('sass-dist', function(){
-  return gulp.src('dev/scss/style.scss')
-    .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
-    .pipe(autoprefixer())
-    .pipe(gulp.dest('dist/css'))
+    var configSass = config.sass;
+    
+    return gulp.src(configSass.src)
+        .pipe(sass({outputStyle: configSass.outputStyle}).on('error', sass.logError))
+        .pipe(autoprefixer())
+        .pipe(gulp.dest(configSass.dest.dist))
 })
 
-// Template Cache
+// Template Cache compile
 gulp.task('templateCache', function(cb){
-  return gulp.src('dev/app/templates/*.html')
-    .pipe(templateCache({
-      standalone: true,
-      root: 'app/templates'
-    }))
-    .pipe(gulp.dest('dev/app/'))
-    .pipe(connect.reload());
+    var configTemplate = config.htmlTemplate;
+
+    return gulp.src(configTemplate.src)
+        .pipe(templateCache({
+            standalone: true,
+            root: configTemplate.folderRoot
+        }))
+        .pipe(gulp.dest(configTemplate.dest))
+        .pipe(connect.reload());
 
     cb(err);
 });
 
 // Reload
 gulp.task('reload', function(){
-  return gulp.src('dev/index.html')
+  return gulp.src(config.staticIndex.dev)
     .pipe(connect.reload());
 });
 
 // Watch
 gulp.task('watch', function(){
-  gulp.watch('dev/scss/**/*.scss', ['sass']);
-  gulp.watch(['dev/index.html', 'dev/app/templates/*.html'], ['templateCache']);
-  gulp.watch('dev/app/**/*.js', ['reload']);
+    var configWatch = config.watch;
+
+    gulp.watch(configWatch.sass, ['sass']);
+    gulp.watch(configWatch.templates, ['templateCache']);
+    gulp.watch(configWatch.js, ['reload']);
 });
 
 // Copy faile to dist
 gulp.task('copy', function(){
-  gulp.src('dev/index.html')
-    .pipe(htmlreplace({
-        'js': ['js/vendor.js', 'js/app.js']
-    }))
-    .pipe(gulp.dest('dist/'));
+    var configCopy = config.copy;
 
-  gulp.src('dev/img/*')
-    .pipe(gulp.dest('dist/img/'));
+    gulp.src(configCopy.replace.src)
+        .pipe(htmlreplace({
+            'js': configCopy.replace.js
+        }))
+        .pipe(gulp.dest(configCopy.replace.dest));
 
-  gulp.src('dev/font/*')
-    .pipe(gulp.dest('dist/font/'));
+    gulp.src(configCopy.img.src)
+        .pipe(gulp.dest(configCopy.img.dest));
 
-  gulp.src(['dev/404.html', 'dev/favicon.ico'])
-    .pipe(gulp.dest('dist/'))
+    gulp.src(configCopy.font.src)
+        .pipe(gulp.dest(configCopy.font.dest));
+
+    gulp.src(configCopy.others.src)
+        .pipe(gulp.dest(configCopy.others.dest))
 });
 
 // Scripts app to dist
 gulp.task('scripts', ['templateCache'], function(){
-  return gulp.src(['dev/app/app.main.js', 'dev/app/**/*.js'])
-    .pipe(concat('app.js'))
-    .pipe(uglify())
-    .pipe(iife())
-    .pipe(gulp.dest('dist/js/'));
+    var configScripts = config.js.app;
+
+    return gulp.src(configScripts.src)
+        .pipe(concat(configScripts.outputName))
+        .pipe(uglify())
+        .pipe(iife())
+        .pipe(gulp.dest(configScripts.dest));
 });
 
 // Vendor to dist
 gulp.task('vendors', function(){
-  return gulp.src([
-    // Dependencies here
-    'dev/vendor/angular-ui-router/release/angular-ui-router.min.js'
-  ])
-  .pipe(concat('vendor.js'))
-  .pipe(uglify())
-  .pipe(gulp.dest('dist/js/'));
+    var configVendors = config.js.vendor;
+    
+    return gulp.src(configVendors.src)
+        .pipe(mainBowerFiles())
+        .pipe(concat(configVendors.outputName))
+        .pipe(uglify())
+        .pipe(gulp.dest(configVendors.dest));
 });
 
 
-gulp.task('dev', ['sass', 'templateCache', 'watch', 'connectDev']);
+gulp.task('dev', devTask);
 gulp.task('dist', ['connectDist']);
-gulp.task('build', ['templateCache', 'sass-dist', 'scripts', 'vendors', 'copy']);
+gulp.task('build', buildTask);
+
+function devTask () {
+    runSequence('sass-dev', 'templateCache', 'watch', 'connectDev');
+}
+
+function buildTask () {
+    runSequence('templateCache', 'sass-dist', 'scripts', 'vendors', 'copy');
+}
